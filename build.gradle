@@ -1,0 +1,30 @@
+plugins {
+    id "com.wiredforcode.spawn" version "0.8.2"
+}
+apply plugin: 'scala'
+
+repositories {
+    mavenCentral()
+}
+
+def availableLocalPort = new ServerSocket(0).localPort
+
+// The type "SpawnProcessTask" is what gives us a long-running ssh tunnel in the background
+// It also tracks processID in a .pid file
+task startSSHTunnel(type: SpawnProcessTask) {
+    def remoteHost = "${System.properties['remote.host']}"
+    def remotePort = "${System.properties['remote.port']}"
+    command "ssh -v -oConnectTimeout=30 -oStrictHostKeyChecking=no -l root -L${availableLocalPort}:localhost:${remotePort} ${remoteHost}"
+    ready 'Authentication succeeded' // this is printed by the SSH session's debug trace when connection has been successful
+}
+
+task stopSSHTunnel(type: KillProcessTask)
+
+task testWrapper(dependsOn: ['startSSHTunnel'], type: Test) {
+    systemProperty "service..endpoint",  "localhost:${availableLocalPort}"
+}
+
+test.dependsOn testWrapper
+
+test.finalizedBy stopSSHTunnel
+
