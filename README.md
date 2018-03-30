@@ -1,6 +1,6 @@
 # gradle-portforward
 
-##Port Forwarding aka Tunneling
+## Port Forwarding aka Tunneling
 Port forwarding is handy when one requires to access a service thats running on a remote machine, but its not port is not accessible.
 
 Example
